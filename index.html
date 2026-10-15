@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ishtirokchilarni Guruhlarga Bo'lish Barabani</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes spinPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); background-color: #4f46e5; }
+            100% { transform: scale(1); }
+        }
+        .spinning {
+            animation: spinPulse 0.3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans p-4 sm:p-6">
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <!-- Sarlavha va Admin tugmasi -->
+        <header class="flex justify-between items-center bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-xl border border-slate-700">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-indigo-400">🎲 Guruhlarga Bo'lish Barabani</h1>
+                <p class="text-xs sm:text-sm text-slate-400">12 ta ishtirokchini 3 ta guruhga tasodifiy taqsimlash</p>
+            </div>
+            <button onclick="openAdminModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition shadow-lg cursor-pointer">
+                ⚙️ Admin Panel
+            </button>
+        </header>
+
+        <!-- Asosiy Baraban va Qolganlar qismi -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Chap tomon: Qolgan ishtirokchilar -->
+            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+                <div>
+                    <h2 class="text-md font-semibold text-slate-300 mb-3 flex items-center justify-between">
+                        <span>Hali tanlanmaganlar</span>
+                        <span id="remaining-count" class="bg-slate-700 text-indigo-300 px-2.5 py-0.5 rounded-full text-xs font-bold">12</span>
+                    </h2>
+                    <div id="remaining-list" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                        <!-- JS orqali to'ldiriladi -->
+                    </div>
+                </div>
+                <button onclick="resetAllGroups()" class="mt-4 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-600/40 text-xs py-2 rounded-xl transition cursor-pointer">
+                    Barchasini qaytadan boshlash
+                </button>
+            </div>
+
+            <!-- O'rta/O'ng tomon: Baraban va Natijalar -->
+            <div class="md:col-span-2 space-y-6">
+                
+                <!-- Baraban Qismi -->
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl text-center">
+                    <div id="spinner-box" class="bg-slate-900 border-2 border-indigo-500/50 rounded-2xl p-6 mb-6 shadow-inner">
+                        <span class="text-xs text-indigo-400 uppercase tracking-widest font-bold">Tasodifiy Nomzod</span>
+                        <div id="spinner-display" class="text-2xl sm:text-3xl font-extrabold text-white mt-2 min-h-[48px] flex items-center justify-center">
+                            Barabanni aylantiring!
+                        </div>
+                    </div>
+
+                    <!-- Guruh tanlash tugmalari -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="spinWheel(1)" id="btn-group-1" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-sm shadow transition cursor-pointer">
+                            1-Guruhga qo'shish (<span id="count-g1">0</span>/4)
+                        </button>
+                        <button onclick="spinWheel(2)" id="btn-group-2" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-sm shadow transition cursor-pointer">
+                            2-Guruhga qo'shish (<span id="count-g2">0</span>/4)
+                        </button>
+                        <button onclick="spinWheel(3)" id="btn-group-3" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-sm shadow transition cursor-pointer">
+                            3-Guruhga qo'shish (<span id="count-g3">0</span>/4)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3 Ta Guruh Kartochkalari -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <h3 class="font-bold text-indigo-400 mb-2 border-b border-slate-700 pb-1">1-Guruh</h3>
+                        <ul id="group-1-list" class="space-y-1 text-sm text-slate-300 min-h-[80px]"></ul>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <h3 class="font-bold text-indigo-400 mb-2 border-b border-slate-700 pb-1">2-Guruh</h3>
+                        <ul id="group-2-list" class="space-y-1 text-sm text-slate-300 min-h-[80px]"></ul>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <h3 class="font-bold text-indigo-400 mb-2 border-b border-slate-700 pb-1">3-Guruh</h3>
+                        <ul id="group-3-list" class="space-y-1 text-sm text-slate-300 min-h-[80px]"></ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 p-6 rounded-2xl w-full max-w-md border border-slate-700 shadow-2xl">
+            <h3 class="text-lg font-bold mb-4 text-indigo-400">Ishtirokchilar nomini tahrirlash (Admin)</h3>
+            <div id="admin-names-list" class="space-y-3 max-h-60 overflow-y-auto mb-4 pr-2">
+                <!-- Dinamik ism inputlari -->
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeAdminModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm cursor-pointer">Saqlash</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logikasi -->
+    <script>
+        const defaultParticipants = Array.from({length: 12}, (_, i) => `Ishtirokchi ${i + 1}`);
+        
+        let participants = JSON.parse(localStorage.getItem('wheel_participants')) || [...defaultParticipants];
+        let groups = JSON.parse(localStorage.getItem('wheel_groups')) || { 1: [], 2: [], 3: [] };
+        let currentSelectedName = null;
+
+        window.onload = function() {
+            updateUI();
+        };
+
+        function updateUI() {
+            // Qolganlar ro'yxati
+            const remList = document.getElementById('remaining-list');
+            remList.innerHTML = '';
+            document.getElementById('remaining-count').innerText = participants.length;
+
+            if (participants.length === 0) {
+                remList.innerHTML = '<p class="text-xs text-slate-500 italic">Barcha ishtirokchilar guruhlarga bo\'lindi!</p>';
+            } else {
+                participants.forEach(name => {
+                    remList.innerHTML += `<div class="bg-slate-900 px-3 py-1.5 rounded-lg text-sm text-slate-300 border border-slate-700">${name}</div>`;
+                });
+            }
+
+            // Guruhlarni yangilash
+            for (let i = 1; i <= 3; i++) {
+                const gList = document.getElementById(`group-${i}-list`);
+                gList.innerHTML = '';
+                groups[i].forEach(name => {
+                    gList.innerHTML += `<li class="bg-slate-900/60 px-2 py-1 rounded border border-slate-700/50">${name}</li>`;
+                });
+                document.getElementById(`count-g1`).innerText = groups[1].length;
+                document.getElementById(`count-g2`).innerText = groups[2].length;
+                document.getElementById(`count-g3`).innerText = groups[3].length;
+
+                // Agar guruh to'lsa (4 tadan oshsa) tugmani o'chirish
+                const btn = document.getElementById(`btn-group-${i}`);
+                if (groups[i].length >= 4) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            localStorage.setItem('wheel_participants', JSON.stringify(participants));
+            localStorage.setItem('wheel_groups', JSON.stringify(groups));
+        }
+
+        function spinWheel(groupNum) {
+            if (participants.length === 0) {
+                alert('Barcha ishtirokchilar allaqachon guruhlarga bo\'lingan!');
+                return;
+            }
+            if (groups[groupNum].length >= 4) {
+                alert(`Bu guruhga allaqachon 4 ta odam qo'shilgan!`);
+                return;
+            }
+
+            const display = document.getElementById('spinner-display');
+            const box = document.getElementById('spinner-box');
+            box.classList.add('spinning');
+
+            let counter = 0;
+            const spinInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * participants.length);
+                display.innerText = participants[randomIndex];
+                counter++;
+
+                if (counter > 15) {
+                    clearInterval(spinInterval);
+                    box.classList.remove('spinning');
+                    
+                    // Oxirgi tanlangan ishtirokchini guruhga qo'shish va ro'yxatdan chiqarish
+                    const finalIndex = Math.floor(Math.random() * participants.length);
+                    currentSelectedName = participants[finalIndex];
+                    display.innerText = currentSelectedName;
+
+                    // Ishtirokchini umumiy ro'yxatdan olib tashlash va tegishli guruhga qo'shish
+                    participants.splice(finalIndex, 1);
+                    groups[groupNum].push(currentSelectedName);
+
+                    updateUI();
+                }
+            }, 80);
+        }
+
+        function resetAllGroups() {
+            if (confirm('Barcha guruhlar tozalanib, ishtirokchilar boshlang\'ich holatga qaytarilsinmi?')) {
+                participants = JSON.parse(localStorage.getItem('wheel_custom_names')) || [...defaultParticipants];
+                groups = { 1: [], 2: [], 3: [] };
+                document.getElementById('spinner-display').innerText = "Barabanni aylantiring!";
+                updateUI();
+            }
+        }
+
+        function openAdminModal() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+            const list = document.getElementById('admin-names-list');
+            list.innerHTML = '';
+
+            const allCurrentNames = [...participants, ...groups[1], ...groups[2], ...groups[3]];
+            
+            allCurrentNames.forEach((name, idx) => {
+                list.innerHTML += `
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 text-xs text-slate-400">#${idx + 1}</span>
+                        <input type="text" id="custom-name-${idx}" value="${name}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                `;
+            });
+        }
+
+        function closeAdminModal() {
+            const allInputs = document.querySelectorAll('[id^="custom-name-"]');
+            let newNames = [];
+            allInputs.forEach(input => {
+                if(input.value.trim() !== '') newNames.push(input.value.trim());
+            });
+
+            if(newNames.length > 0) {
+                defaultParticipants.splice(0, defaultParticipants.length, ...newNames);
+                localStorage.setItem('wheel_custom_names', JSON.stringify(newNames));
+                participants = [...newNames];
+                groups = { 1: [], 2: [], 3: [] };
+                updateUI();
+            }
+
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
